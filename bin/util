@@ -1,0 +1,80 @@
+# vim: set syntax=sh filetype=sh :
+
+ROOT="$( cd "$(dirname "$0")/.."; pwd )"
+SCRIPT_NAME="$( basename "$0" )"
+
+# Default config.env variables.
+LOGFILE="${ROOT}/logs/${SCRIPT_NAME}.log"
+WORLD_DIR="world"
+TMUX_SESSION="mc-server"
+SERVER_JAR="server.jar"
+TMUX_WINDOW="game"
+JAVA_ARGS=
+BACKUP_DIR="${ROOT}/backup/$( date +"%Y%m%d-%H%M%S" )"
+BACKUP_CHAT_MSG_START="Creating backup of world..."
+BACKUP_CHAT_MSG_END="Backup complete."
+BACKUP_CHAT_MSG_BACKING_UP="Backing-up ${WORLD_DIR} directory... (hopefully game has finished saving)"
+BACKUP_SLEEP_AFTER_SAVE=3
+RESOURCEPACK_ZIP=
+RESOURCEPACK_TMUX_WINDOW="resourcepack"
+RESOURCEPACK_PORT=25566
+
+source "${ROOT}/config.env"
+
+TMUX_PANE="${TMUX_SESSION}:${TMUX_WINDOW}.0"
+
+logfile_dir="$( dirname "$LOGFILE" )"
+[ -d "$logfile_dir" ] || mkdir -p "$logfile_dir"
+unset logfile_dir
+
+# Returns 0 if the given command is available.
+function is_available {
+  command -v "$1" &> /dev/null
+}
+
+# Checks if the given command is available, exit if not.
+function check_available {
+  is_available "$1" || print_err "'$1' is not available."
+}
+
+# Write a message to the log file (and stdout).
+function print_log {
+  [ -n "$1" ] && echo -e "$1" | tee -a "$LOGFILE"
+}
+
+# Write an error message to the log file and to the server chat (and stdout), then exit.
+function print_err {
+  [ -n "$1" ] \
+    && ( echo -e "ERROR:\n$1\nExiting." | tee -a "$LOGFILE"; \
+         is_server_running &&             \
+         print_chat "An error occured: '$1'" )
+  exit 1
+}
+
+# Prints the current date to the logfile (and stdout).
+function print_date {
+  print_log "--- $( date "+%F %T" ) ---"
+}
+
+# Returns 0 if the server is running.
+function is_server_running {
+  # TODO: Properly check if the actual java server app is running.
+  tmux has-session -t $TMUX_SESSION &> /dev/null
+}
+
+# Runs the given command on the server, if it is running.
+function server_cmd {
+  is_server_running && \
+    tmux send-keys -t "$TMUX_PANE" Enter "$1" Enter
+    # Start command with an Enter press, to ensure nothing has been typed previously (hacky).
+}
+
+# Write a message to the minecraft server by sending keystrokes to the correct tmux session/window/pane.
+function print_chat {
+  server_cmd "say ${1//$'\n'/$'\n'say }"
+}
+
+# Verify that some programs are available.
+check_available tee
+check_available tmux
+check_available java

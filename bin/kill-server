@@ -1,0 +1,17 @@
+#!/bin/bash
+# Kills the running minecraft/pixelmon server, if it is running.
+
+source "$( dirname "$0" )/util"
+
+print_date
+
+if is_server_running; then
+  if ! out="$( 2>&1 \
+      tmux kill-session -t "$TMUX_SESSION" \
+    )"; then
+    print_err "$out"
+  fi
+  print_log "Killed server."
+else
+  print_err "Server isn't running."
+fi
