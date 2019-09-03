@@ -8,7 +8,7 @@ is_server_running && print_err "Server is already running."
 print_date
 print_log "STARTING SERVER"
 
-cmd="java -jar \"${SERVER_JAR}\" nogui ${JAVA_ARGS}"
+cmd="java ${JAVA_ARGS} -jar \"${SERVER_JAR}\" nogui"
 if ! out="$( 2>&1      \
     tmux new-session   \
     -d                 \
