@@ -8,6 +8,8 @@ is_server_running && print_err "Server is already running."
 print_date
 print_log "STARTING SERVER"
 
+[ -f "${SERVER_JAR}" ] || print_err "Missing server jar file: ${SERVER_JAR}"
+
 cmd="java ${JAVA_ARGS} -jar \"${SERVER_JAR}\" nogui"
 if ! out="$( 2>&1      \
     tmux new-session   \
