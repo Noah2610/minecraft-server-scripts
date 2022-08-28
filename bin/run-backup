@@ -1,15 +1,15 @@
 #!/bin/bash
 # Creates a backup of the world/ ($WORLD_DIR) directory.
 
-source "$( dirname "$0" )/util"
+source "$( dirname "$0" )/lib.sh"
 
 # Check that 'zip' is available.
-check_available zip
+check zip
 
 print_date
 
 # Exit if the server is not running.
-is_server_running || print_err "Server isn't running."
+is_server_running || err "Server isn't running."
 
 print_chat "$BACKUP_CHAT_MSG_START"
 print_log "BACKUP STARTED"
@@ -26,14 +26,14 @@ cd "$ROOT"
 mkdir -p "$BACKUP_DIR"
 print_log "Zipping $WORLD_DIR directory"
 if ! out="$( zip -r "${WORLD_DIR}.zip" "$WORLD_DIR" )"; then
-  print_err "$out"
+  err "$out"
 fi
 unset out
 print_log "Moving ${WORLD_DIR}.zip to backup directory '$BACKUP_DIR'"
 if ! out="$( 2>&1 \
     mv "${ROOT}/${WORLD_DIR}.zip" "$BACKUP_DIR" \
   )"; then
-  print_err "$out"
+  err "$out"
 fi
 unset out
 

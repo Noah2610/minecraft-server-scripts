@@ -1,6 +1,15 @@
 # vim: set syntax=sh filetype=sh :
 
-ROOT="$( cd "$(dirname "$0")/.."; pwd )"
+# shellcheck source=./util.sh disable=SC2155
+function _dl_util_sh {
+    local UTIL_VERSION="v2.2.5"
+    local dir="$( dirname "$1" )"
+    [ -f "${dir}/util.sh" ] || bash "${dir}/download-util.sh" "$UTIL_VERSION" || exit 1
+    source "${dir}/util.sh"
+}; _dl_util_sh "$0"
+
+exit
+
 SCRIPT_NAME="$( basename "$0" )"
 
 # Default config.env variables.
@@ -27,33 +36,9 @@ logfile_dir="$( dirname "$LOGFILE" )"
 [ -d "$logfile_dir" ] || mkdir -p "$logfile_dir"
 unset logfile_dir
 
-# Returns 0 if the given command is available.
-function is_available {
-  command -v "$1" &> /dev/null
-}
-
-# Checks if the given command is available, exit if not.
-function check_available {
-  is_available "$1" || print_err "'$1' is not available."
-}
-
-# Write a message to the log file (and stdout).
-function print_log {
-  [ -n "$1" ] && echo -e "$1" | tee -a "$LOGFILE"
-}
-
-# Write an error message to the log file and to the server chat (and stdout), then exit.
-function print_err {
-  [ -n "$1" ] \
-    && ( echo -e "ERROR:\n$1\nExiting." | tee -a "$LOGFILE"; \
-         is_server_running &&             \
-         print_chat "An error occured: '$1'" )
-  exit 1
-}
-
 # Prints the current date to the logfile (and stdout).
 function print_date {
-  print_log "--- $( date "+%F %T" ) ---"
+  msg "--- $( date "+%F %T" ) ---"
 }
 
 # Returns 0 if the server is running.
@@ -75,6 +60,6 @@ function print_chat {
 }
 
 # Verify that some programs are available.
-check_available tee
-check_available tmux
-check_available java
+check tee
+check tmux
+check java

@@ -1,16 +1,16 @@
 #!/bin/bash
 # Starts a static server that responds with the resource pack zip file.
 
-source "$( dirname "$0" )/util"
+source "$( dirname "$0" )/lib.sh"
 
-[ -n "$RESOURCEPACK_ZIP" ] || print_err "The \`\$RESOURCEPACK_ZIP\` environment variable must be set in \`config.env\` to use this script."
-[ -f "$RESOURCEPACK_ZIP" ] || print_err "Resource pack zipfile does not exist: '${RESOURCEPACK_ZIP}'"
+[ -n "$RESOURCEPACK_ZIP" ] || err "The \`\$RESOURCEPACK_ZIP\` environment variable must be set in \`config.env\` to use this script."
+[ -f "$RESOURCEPACK_ZIP" ] || err "Resource pack zipfile does not exist: '${RESOURCEPACK_ZIP}'"
 
-check_available "miniserve"
-is_server_running || print_err "Server must be running for the resource pack server to start."
+check "miniserve"
+is_server_running || err "Server must be running for the resource pack server to start."
 
 print_date
-print_log "Starting Resource Pack Server"
+msg "Starting Resource Pack Server"
 
 rp_dir="$( dirname "$RESOURCEPACK_ZIP" )"
 rp_filename="$( basename "$RESOURCEPACK_ZIP" )"
