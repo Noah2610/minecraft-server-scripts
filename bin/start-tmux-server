@@ -1,0 +1,30 @@
+#!/bin/bash
+# Starts minecraft server in tmux session.
+
+source "$( dirname "$0" )/lib.sh"
+
+ARG_ATTACH=
+
+print_date
+
+is_server_running && err "Server is already running."
+
+msg "Starting server in \"${TMUX_SESSION}\" tmux session."
+
+START_SERVER_SCRIPT="bin/start-server"
+
+try_run \
+    tmux new-session     \
+    -d                   \
+    -c "${ROOT}"         \
+    -s "${TMUX_SESSION}" \
+    -n "${TMUX_WINDOW}"  \
+    "${START_SERVER_SCRIPT} $@"
+
+if [ -n "$ARG_ATTACH" ]; then
+    echo "Attaching to tmux server..."
+    tmux attach -t "$TMUX_SESSION"
+else
+    echo "Watching logfile..."
+    less +F "$( get_logfile_for "${START_SERVER_SCRIPT}" )"
+fi

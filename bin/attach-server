@@ -1,8 +1,0 @@
-#!/bin/bash
-# Attaches to the tmux session with the running server.
-
-source "$( dirname "$0" )/lib.sh"
-
-is_server_running || err "Server is not running."
-
-tmux attach -t "$TMUX_SESSION"

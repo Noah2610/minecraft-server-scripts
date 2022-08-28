@@ -10,8 +10,14 @@ function _dl_util_sh {
 
 SCRIPT_NAME="$( basename "$0" )"
 
+function get_logfile_for {
+    local script_name="$( basename "$1" )"
+    echo "${ROOT}/logs/${script_name}.log"
+}
+
 # Default config.env variables.
-LOGFILE="${ROOT}/logs/${SCRIPT_NAME}.log"
+LOGFILE="$( get_logfile_for "${SCRIPT_NAME}" )"
+SERVER_DIR="${ROOT}/server"
 WORLD_DIR="world"
 TMUX_SESSION="mc-server"
 SERVER_JAR="server.jar"
@@ -26,16 +32,24 @@ RESOURCEPACK_ZIP=
 RESOURCEPACK_TMUX_WINDOW="resourcepack"
 RESOURCEPACK_PORT=25566
 
-[ -f "${ROOT}/config.env" ] \
-    || err "config.env file not found."
-
-source "${ROOT}/config.env"
-
-TMUX_PANE="${TMUX_SESSION}:${TMUX_WINDOW}.0"
+ARG_ATTACH=
+ARG_ACCEPT_EULA=
 
 logfile_dir="$( dirname "$LOGFILE" )"
 [ -d "$logfile_dir" ] || mkdir -p "$logfile_dir"
 unset logfile_dir
+
+[ -d "$SERVER_DIR" ] || mkdir -p "$SERVER_DIR"
+
+if ! [ -f "${ROOT}/config.env" ]; then
+    msg "Creating default \`config.env\`."
+    try_run \
+        cp "${ROOT}/config.example.env" "${ROOT}/config.env"
+fi
+
+source "${ROOT}/config.env" || exit 1
+
+TMUX_PANE="${TMUX_SESSION}:${TMUX_WINDOW}.0"
 
 # Prints the current date to the logfile (and stdout).
 function print_date {
@@ -60,7 +74,29 @@ function print_chat {
     server_cmd "say ${1//$'\n'/$'\n'say }"
 }
 
+function _parse_args {
+    while [ -n "$1" ]; do
+        local arg="$1"
+        echo "$arg"
+        shift
+        case "$arg" in
+            "--")
+                break
+                ;;
+            "--attach"|"-a")
+                ARG_ATTACH=1
+                ;;
+            "--accept-eula"|"-y")
+                ARG_ACCEPT_EULA=1
+                ;;
+        esac
+    done
+}
+
 # Verify that some programs are available.
 check tee
 check tmux
 check java
+check sed
+
+_parse_args "$@"

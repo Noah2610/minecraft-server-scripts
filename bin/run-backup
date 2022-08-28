@@ -12,7 +12,7 @@ print_date
 is_server_running || err "Server isn't running."
 
 print_chat "$BACKUP_CHAT_MSG_START"
-print_log "BACKUP STARTED"
+msg "BACKUP STARTED"
 
 # Save world
 print_chat "Saving world..."
@@ -22,20 +22,12 @@ sleep "$BACKUP_SLEEP_AFTER_SAVE"
 
 # Backup world
 print_chat "Backing-up $WORLD_DIR directory... (hopefully game has finished saving)"
-cd "$ROOT"
 mkdir -p "$BACKUP_DIR"
-print_log "Zipping $WORLD_DIR directory"
-if ! out="$( zip -r "${WORLD_DIR}.zip" "$WORLD_DIR" )"; then
-  err "$out"
-fi
-unset out
-print_log "Moving ${WORLD_DIR}.zip to backup directory '$BACKUP_DIR'"
-if ! out="$( 2>&1 \
-    mv "${ROOT}/${WORLD_DIR}.zip" "$BACKUP_DIR" \
-  )"; then
-  err "$out"
-fi
-unset out
+msg "Zipping $WORLD_DIR directory"
+try_run \
+    zip \
+        -r "${BACKUP_DIR}/${WORLD_DIR}.zip" \
+        "${SERVER_DIR}/${WORLD_DIR}"
 
 print_chat "$BACKUP_CHAT_MSG_END"
-print_log "BACKUP COMPLETE"
+msg "BACKUP COMPLETE"

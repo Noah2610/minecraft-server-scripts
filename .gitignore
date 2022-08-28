@@ -1,2 +1,9 @@
-*.jar
+# UTIL
 bin/util.sh
+/logs
+*.log
+/config.env
+
+# MINECRAFT
+*.jar
+/server/
