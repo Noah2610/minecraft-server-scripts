@@ -1,0 +1,13 @@
+#!/bin/bash
+# Shows running status of minectaft server.
+# Exits 0 if server is running, 1 if not.
+
+source "$( dirname "$0" )/lib.sh"
+
+if is_server_running; then
+    msg "Server is running in tmux session \"${TMUX_SESSION}\"!"
+    exit 0
+else
+    msg "Server is not running."
+    exit 1
+fi
