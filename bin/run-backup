@@ -3,31 +3,40 @@
 
 source "$( dirname "$0" )/lib.sh"
 
+BACKUP_CHAT_MSG_START="Creating backup of world..."
+BACKUP_CHAT_MSG_END="Backup complete."
+BACKUP_CHAT_MSG_BACKING_UP="Backing-up $WORLD_DIR directory... (hopefully game has finished saving)"
+
 # Check that 'zip' is available.
 check zip
 
 print_date
 
-# Exit if the server is not running.
-is_server_running || err "Server isn't running."
+is_server_running
+server_running=$?
 
-print_chat "$BACKUP_CHAT_MSG_START"
-msg "BACKUP STARTED"
+[ $server_running -eq 0 ] \
+    && print_chat "$BACKUP_CHAT_MSG_START"
+
+msg "Starting backup..."
 
 # Save world
-print_chat "Saving world..."
-server_cmd "save-all"
-# Sleep a couple seconds, to make sure minecraft finished saving the world.
-sleep "$BACKUP_SLEEP_AFTER_SAVE"
+[ $server_running -eq 0 ] \
+    && print_chat "Saving world..." \
+    && server_cmd "save-all" \
+    && sleep "$BACKUP_SLEEP_AFTER_SAVE"
+    # Sleep a couple seconds, to make sure minecraft finished saving the world.
 
 # Backup world
-print_chat "Backing-up $WORLD_DIR directory... (hopefully game has finished saving)"
+[ $server_running -eq 0 ] \
+    && print_chat "Backing-up $WORLD_DIR directory..."
 mkdir -p "$BACKUP_DIR"
 msg "Zipping $WORLD_DIR directory"
-try_run \
+try_run_hidden \
     zip \
         -r "${BACKUP_DIR}/${WORLD_DIR}.zip" \
         "${SERVER_DIR}/${WORLD_DIR}"
 
-print_chat "$BACKUP_CHAT_MSG_END"
-msg "BACKUP COMPLETE"
+[ $server_running -eq 0 ] \
+    && print_chat "$BACKUP_CHAT_MSG_END"
+msg "Backup compelete!\n${BACKUP_DIR}/${WORLD_DIR}.zip"
