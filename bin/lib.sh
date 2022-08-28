@@ -8,8 +8,6 @@ function _dl_util_sh {
     source "${dir}/util.sh"
 }; _dl_util_sh "$0"
 
-exit
-
 SCRIPT_NAME="$( basename "$0" )"
 
 # Default config.env variables.
@@ -27,6 +25,9 @@ BACKUP_SLEEP_AFTER_SAVE=3
 RESOURCEPACK_ZIP=
 RESOURCEPACK_TMUX_WINDOW="resourcepack"
 RESOURCEPACK_PORT=25566
+
+[ -f "${ROOT}/config.env" ] \
+    || err "config.env file not found."
 
 source "${ROOT}/config.env"
 
